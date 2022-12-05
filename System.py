@@ -1,6 +1,5 @@
 from tkinter import *
 from PIL import Image, ImageTk
-
 existing_images = []
 
 
@@ -25,19 +24,19 @@ class System (Frame):
     def existingImagesWindow(self, master):
         self.clean_and_rebuild('Existing Images')
 
-        leftImage = Image.open("ExistingImages/leftarrow.png")
-        leftArrowImage = ImageTk.PhotoImage(leftImage.resize((50, 50), Image.ANTIALIAS))
-        rightImage = Image.open("ExistingImages/rightarrow.png")
-        rightArrowImage = ImageTk.PhotoImage(rightImage.resize((50, 50), Image.ANTIALIAS))
+        leftArrowImage = Image.open("ExistingImages/leftarrow.png")
+        resizedLeftArrowImage = ImageTk.PhotoImage(leftArrowImage.resize((20, 20), Image.ANTIALIAS))
+        rightArrowImage = Image.open("ExistingImages/rightarrow.png")
+        resizedRightArrowImage = ImageTk.PhotoImage(rightArrowImage.resize((20, 20), Image.ANTIALIAS))
 
-        leftBtn = Button(self.display_window, image=leftArrowImage)
-        rightBtn = Button(self.display_window, image=rightArrowImage)
+        leftArrowBtn = Button(self.display_window, image=resizedLeftArrowImage)
+        leftArrowBtn.image = resizedLeftArrowImage
+        rightArrowBtn = Button(self.display_window, image=resizedRightArrowImage)
+        rightArrowBtn.image = resizedRightArrowImage
 
-        leftBtn.pack(side=LEFT, padx=15, pady=20)
-        rightBtn.pack(side=RIGHT, padx=15, pady=20)
-        # master = Tk()
-        # self.set_window_settings()
-        # self.display_window.destroy()
+        leftArrowBtn.pack(side=LEFT, padx=15, pady=20)
+        rightArrowBtn.pack(side=RIGHT, padx=15, pady=20)
+
 
     def set_welcome_window(self):
         existingImagesBtn = Button(self.display_window, text='Existing Images', command=lambda: self.existingImagesWindow(self.display_window))
