@@ -7,6 +7,7 @@ import cv2
 existing_images = []
 current_image = 0
 images_number = 0
+public_key, private_key = rsa.newkeys(512)
 
 
 class System (Frame):
@@ -75,8 +76,8 @@ class System (Frame):
         self.center_label.configure(image=existing_images[current_image])
 
     def encrypt_image(self):
-        global existing_images, current_image
-        existing_images[current_image] = rsa.encrypt(existing_images[current_image])
+        global existing_images, current_image, public_key
+        existing_images[current_image] = rsa.encrypt(existing_images[current_image].encode(), public_key)
     def decrypt_image(self):
         global existing_images, current_image
         existing_images[current_image] = rsa.decrypt(existing_images[current_image])
