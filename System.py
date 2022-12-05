@@ -1,6 +1,12 @@
 from tkinter import *
+
+import rsa
 from PIL import Image, ImageTk
+import glob
+import cv2
 existing_images = []
+current_image = 0
+images_number = 0
 
 
 class System (Frame):
@@ -24,20 +30,35 @@ class System (Frame):
     def existingImagesWindow(self, master):
         self.clean_and_rebuild('Existing Images')
 
-        leftArrowImage = Image.open("ExistingImages/leftarrow.png")
+        leftArrowImage = Image.open("ExistingImages/Arrows/leftarrow.png")
         resizedLeftArrowImage = ImageTk.PhotoImage(leftArrowImage.resize((20, 20), Image.ANTIALIAS))
-        rightArrowImage = Image.open("ExistingImages/rightarrow.png")
+        rightArrowImage = Image.open("ExistingImages/Arrows/rightarrow.png")
         resizedRightArrowImage = ImageTk.PhotoImage(rightArrowImage.resize((20, 20), Image.ANTIALIAS))
 
-        leftArrowBtn = Button(self.display_window, image=resizedLeftArrowImage)
+        leftArrowBtn = Button(self.display_window, image=resizedLeftArrowImage, command=lambda: self.next_image(-1))
         leftArrowBtn.image = resizedLeftArrowImage
-        rightArrowBtn = Button(self.display_window, image=resizedRightArrowImage)
+        rightArrowBtn = Button(self.display_window, image=resizedRightArrowImage, command=lambda: self.next_image(1))
         rightArrowBtn.image = resizedRightArrowImage
 
         leftArrowBtn.pack(side=LEFT, padx=15, pady=20)
         rightArrowBtn.pack(side=RIGHT, padx=15, pady=20)
 
+        global existing_images
+        # existing_images = [cv2.imread(file) for file in glob.glob("ExistingImages/*.jpg")]
+        existing_images = [ImageTk.PhotoImage(Image.open(r'ExistingImages\img' + str(i) + r'.jpg')
+                                              .resize((250, 225))) for i in range(1, 10)]
+        global images_number
+        images_number = len(existing_images)
+        self.photo_frame = Frame(self.display_window)
+        self.center_label = Label(self.photo_frame, image=existing_images[current_image])
+        self.photo_frame.pack(anchor='center', pady=30)
+        self.center_label.pack()
 
+        encrypt_button = Button(self.display_window, text='Encrypt', command=self.encrypt_image)
+        decrypt_button = Button(self.display_window, text='Decrypt', command=self.decrypt_image)
+
+        encrypt_button.pack(side='left')
+        decrypt_button.pack(side='right')
     def set_welcome_window(self):
         existingImagesBtn = Button(self.display_window, text='Existing Images', command=lambda: self.existingImagesWindow(self.display_window))
         importImagesBtn = Button(self.display_window, text='Import Images')
@@ -46,3 +67,16 @@ class System (Frame):
         existingImagesBtn.pack(side=LEFT, padx=15, pady=20)
         importImagesBtn.pack(side=RIGHT, padx=15, pady=20)
         exitBtn.pack(side=BOTTOM, padx=15, pady=20)
+
+
+    def next_image(self, direction):
+        global current_image, images_number
+        current_image = (current_image+direction)%images_number
+        self.center_label.configure(image=existing_images[current_image])
+
+    def encrypt_image(self):
+        global existing_images, current_image
+        existing_images[current_image] = rsa.encrypt(existing_images[current_image])
+    def decrypt_image(self):
+        global existing_images, current_image
+        existing_images[current_image] = rsa.decrypt(existing_images[current_image])
