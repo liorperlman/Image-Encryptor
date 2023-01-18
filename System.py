@@ -77,7 +77,78 @@ class System (Frame):
 
     def encrypt_image(self):
         global existing_images, current_image, public_key
-        existing_images[current_image] = rsa.encrypt(existing_images[current_image].encode(), public_key)
+        #img = existing_images[current_image]
+
+        # Convert the image to a 2D array of pixels
+        with Image.open(r'ExistingImages\img' + str(current_image + 1) + ".jpg") as img:
+            pixels = img.load()
+            width, height = img.size
+
+            # The key to use for encryption
+            key = 123
+
+            # Encrypt the pixels
+            for x in range(width):
+                for y in range(height):
+                    pixel = pixels[x, y]
+                    new_pixel = []
+                    for value in pixel:
+                        new_value = value ^ key
+                        new_pixel.append(new_value)
+                    pixels[x, y] = tuple(new_pixel)
+
+                # Save the encrypted image
+            img.save(r'ExistingImages\encrypted-image' + str(current_image + 1) + ".jpg")
+            existing_images[current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
+        self.center_label.configure(image=existing_images[current_image])
+
     def decrypt_image(self):
         global existing_images, current_image
-        existing_images[current_image] = rsa.decrypt(existing_images[current_image])
+        #existing_images[current_image] = rsa.decrypt(existing_images[current_image])
+
+        with Image.open(r'ExistingImages\encrypted-image' + str(current_image + 1) + ".jpg") as img:
+            pixels = img.load()
+            width, height = img.size
+
+            # The key to use for encryption
+            key = 123
+
+            # Encrypt the pixels
+            for x in range(width):
+                for y in range(height):
+                    pixel = pixels[x, y]
+                    new_pixel = []
+                    for value in pixel:
+                        new_value = value ^ key
+                        new_pixel.append(new_value)
+                    pixels[x, y] = tuple(new_pixel)
+
+                # Save the encrypted image
+            img.save(r'ExistingImages\decrypted-image' + str(current_image + 1) + ".jpg")
+            existing_images[current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
+        self.center_label.configure(image=existing_images[current_image])
+
+
+        # from PIL import Image
+        #
+        # # Open the image
+        # with Image.open("image.jpg") as img:
+        #     # Convert the image to a 2D array of pixels
+        #     pixels = img.load()
+        #     width, height = img.size
+        #
+        #     # The key to use for encryption
+        #     key = 123
+        #
+        #     # Encrypt the pixels
+        #     for x in range(width):
+        #         for y in range(height):
+        #             pixel = pixels[x, y]
+        #             new_pixel = []
+        #             for value in pixel:
+        #                 new_value = value ^ key
+        #                 new_pixel.append(new_value)
+        #             pixels[x, y] = tuple(new_pixel)
+        #
+        #     # Save the encrypted image
+        #     img.save("encrypted_image.jpg")
