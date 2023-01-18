@@ -1,13 +1,15 @@
 from tkinter import *
+from Crypto.Cipher import AES
 
-import rsa
 from PIL import Image, ImageTk
-import glob
-import cv2
+import os
+import struct
+
+
 existing_images = []
 current_image = 0
 images_number = 0
-public_key, private_key = rsa.newkeys(512)
+# public_key, private_key = rsa.newkeys(512)
 
 
 class System (Frame):
@@ -75,9 +77,36 @@ class System (Frame):
         current_image = (current_image+direction)%images_number
         self.center_label.configure(image=existing_images[current_image])
 
+    # def encrypt_image(self):
+    #     global existing_images, current_image, public_key
+    #
+    #     # Convert the image to a 2D array of pixels
+    #     with Image.open(r'ExistingImages\img' + str(current_image + 1) + ".jpg") as img:
+    #         pixels = img.load()
+    #         width, height = img.size
+    #
+    #         # The key to use for encryption
+    #         key = 123
+    #
+    #         # Encrypt the pixels
+    #         for x in range(width):
+    #             for y in range(height):
+    #                 pixel = pixels[x, y]
+    #                 new_pixel = []
+    #                 for value in pixel:
+    #                     new_value = value ^ key
+    #                     new_pixel.append(new_value)
+    #                 pixels[x, y] = tuple(new_pixel)
+    #
+    #             # Save the encrypted image
+    #         img.save(r'ExistingImages\encrypted-image' + str(current_image + 1) + ".jpg")
+    #         existing_images[current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
+    #     self.center_label.configure(image=existing_images[current_image])
+
+
+
     def encrypt_image(self):
         global existing_images, current_image, public_key
-        #img = existing_images[current_image]
 
         # Convert the image to a 2D array of pixels
         with Image.open(r'ExistingImages\img' + str(current_image + 1) + ".jpg") as img:
@@ -85,7 +114,10 @@ class System (Frame):
             width, height = img.size
 
             # The key to use for encryption
-            key = 123
+            key = os.urandom(32)  # Generates a random 32-byte key
+
+            # Create a new AES cipher
+            cipher = AES.new(key, AES.MODE_EAX)
 
             # Encrypt the pixels
             for x in range(width):
@@ -93,7 +125,10 @@ class System (Frame):
                     pixel = pixels[x, y]
                     new_pixel = []
                     for value in pixel:
-                        new_value = value ^ key
+                        # Encrypt the value using AES
+                        encrypted_value = cipher.encrypt(struct.pack('>I', value))
+                        # Apply the XOR operation
+                        new_value = (struct.unpack('>I', encrypted_value)[0])%255 ^ (int.from_bytes(key, byteorder="big")%255)
                         new_pixel.append(new_value)
                     pixels[x, y] = tuple(new_pixel)
 
@@ -104,7 +139,6 @@ class System (Frame):
 
     def decrypt_image(self):
         global existing_images, current_image
-        #existing_images[current_image] = rsa.decrypt(existing_images[current_image])
 
         with Image.open(r'ExistingImages\encrypted-image' + str(current_image + 1) + ".jpg") as img:
             pixels = img.load()
