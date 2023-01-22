@@ -1,5 +1,6 @@
 from tkinter import *
 from Crypto.Cipher import AES
+from Crypto.Util import Padding
 
 from PIL import Image, ImageTk
 import os
@@ -77,35 +78,28 @@ class System (Frame):
         current_image = (current_image+direction)%images_number
         self.center_label.configure(image=existing_images[current_image])
 
-    # def encrypt_image(self):
-    #     global existing_images, current_image, public_key
-    #
-    #     # Convert the image to a 2D array of pixels
-    #     with Image.open(r'ExistingImages\img' + str(current_image + 1) + ".jpg") as img:
-    #         pixels = img.load()
-    #         width, height = img.size
-    #
-    #         # The key to use for encryption
-    #         key = 123
-    #
-    #         # Encrypt the pixels
-    #         for x in range(width):
-    #             for y in range(height):
-    #                 pixel = pixels[x, y]
-    #                 new_pixel = []
-    #                 for value in pixel:
-    #                     new_value = value ^ key
-    #                     new_pixel.append(new_value)
-    #                 pixels[x, y] = tuple(new_pixel)
-    #
-    #             # Save the encrypted image
-    #         img.save(r'ExistingImages\encrypted-image' + str(current_image + 1) + ".jpg")
-    #         existing_images[current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
-    #     self.center_label.configure(image=existing_images[current_image])
-
-
-
     def encrypt_image(self):
+        # Open the image file
+        with Image.open(r'ExistingImages\img' + str(current_image + 1) + ".jpg") as img:
+            # Convert the image to bytes
+            img_bytes = img.tobytes()
+            # Create a new AES cipher
+            key = os.urandom(16)
+            cipher = AES.new(key, AES.MODE_EAX)
+            # Pad the data to a multiple of the block size
+            padded_data = Padding.pad(img_bytes, AES.block_size)
+            # Encrypt the padded data
+            encrypted_data = cipher.encrypt(padded_data)
+            # Create a new image from the encrypted data
+            encrypted_img = Image.frombytes(img.mode, img.size, encrypted_data)
+            # Save the encrypted image
+            encrypted_img.save(r'ExistingImages\encrypted-image' + str(current_image + 1) + ".jpg")
+            existing_images[current_image] = ImageTk.PhotoImage(encrypted_img.resize((250, 225)))
+        self.center_label.configure(image=existing_images[current_image])
+
+
+
+    def encrypt_image2(self):
         global existing_images, current_image, public_key
 
         # Convert the image to a 2D array of pixels
@@ -114,7 +108,7 @@ class System (Frame):
             width, height = img.size
 
             # The key to use for encryption
-            key = os.urandom(32)  # Generates a random 32-byte key
+            key = os.urandom(16)  # Generates a random 16-byte key
 
             # Create a new AES cipher
             cipher = AES.new(key, AES.MODE_EAX)
@@ -126,9 +120,10 @@ class System (Frame):
                     new_pixel = []
                     for value in pixel:
                         # Encrypt the value using AES
-                        encrypted_value = cipher.encrypt(struct.pack('>I', value))
+                        encrypted_value = cipher.encrypt(value.to_bytes(4, byteorder='big'))
                         # Apply the XOR operation
-                        new_value = (struct.unpack('>I', encrypted_value)[0])%255 ^ (int.from_bytes(key, byteorder="big")%255)
+
+                        new_value = (struct.unpack('>I', encrypted_value)[0])%500 ^ int.from_bytes(key, byteorder="big")
                         new_pixel.append(new_value)
                     pixels[x, y] = tuple(new_pixel)
 
