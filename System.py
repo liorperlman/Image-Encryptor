@@ -10,41 +10,52 @@ import os
 import struct
 
 
-existing_images = []
-current_image = 0
 
-images_number = 0
+
+
+
 #key_AES = b'\xba\xfb\xe2\xd72\xcfL\xe9\x1e\x1f\xf4\xe9MS\x1du'
 
 
 class System (Frame):
     # Constructor without parameters
+    existing_images = []
+    current_image = 0
+    images_number = 0
+    
     def __init__(self, master):
         Frame.__init__(self, master)
         self.display_window = master
         self.set_window_settings('Image Encryptor Demo')
         self.set_welcome_window()
+        self.update_images_number()
 
     def clean_and_rebuild(self, title):
         self.display_window.destroy()
         self.display_window = Tk()
+        self.load_initial_images()
         self.set_window_settings(title)
 
     def set_window_settings(self, title):
         self.display_window.resizable(False, False)
         self.display_window.geometry("350x350")
         self.display_window.title(title)
-
+    
+    def update_images_number(self):
+        self.images_number = 0
+        for file in os.listdir('ExistingImages'):
+            if file.endswith(".png"):
+                self.images_number += 1
+    
     def load_initial_images(self):
-        global existing_images, images_number
-        existing_images = [ImageTk.PhotoImage(Image.open(r'ExistingImages\img' + str(i) + r'.png')
-                                              .resize((250, 225))) for i in range(1, 10)]
-        images_number = len(existing_images)
+        self.existing_images = [ImageTk.PhotoImage(Image.open(r'ExistingImages\img' + str(i) + r'.png')
+                                              .resize((250, 225))) for i in range(1, self.images_number+1)]
+        
+    
 
     def existingImagesWindow(self, master):
-        global existing_images, current_image, images_number
         self.clean_and_rebuild('Existing Images')
-
+        print("next image: "+str(self.existing_images))
         leftArrowImage = Image.open("ExistingImages/Arrows/leftarrow.png")
         resizedLeftArrowImage = ImageTk.PhotoImage(leftArrowImage.resize((20, 20), Image.ANTIALIAS))
         rightArrowImage = Image.open("ExistingImages/Arrows/rightarrow.png")
@@ -59,7 +70,7 @@ class System (Frame):
         rightArrowBtn.pack(side=RIGHT, padx=15, pady=20)
 
         self.photo_frame = Frame(self.display_window)
-        self.center_label = Label(self.photo_frame, image=existing_images[current_image])
+        self.center_label = Label(self.photo_frame, image=self.existing_images[self.current_image])
         self.photo_frame.pack(anchor='center', pady=30)
         self.center_label.pack()
 
@@ -69,7 +80,6 @@ class System (Frame):
         encrypt_button.pack(side='left')
         decrypt_button.pack(side='right')
     def set_welcome_window(self):
-        self.load_initial_images()
         existingImagesBtn = Button(self.display_window, text='Existing Images', command=lambda: self.existingImagesWindow(self.display_window))
         importImagesBtn = Button(self.display_window, text='Import Images', command=self.open_file)
         exitBtn = Button(self.display_window, text='Exit', command=self.display_window.destroy)
@@ -80,15 +90,13 @@ class System (Frame):
 
 
     def next_image(self, direction):
-        global current_image, images_number, existing_images
-        current_image = (current_image+direction)%images_number
-        self.center_label.configure(image=existing_images[current_image])
+        self.current_image = (self.current_image+direction)%self.images_number
+        
+        self.center_label.configure(image=self.existing_images[self.current_image])
 
     def encrypt_image(self):
-        global existing_images, current_image
-
         # Convert the image to a 2D array of pixels
-        with Image.open(r'ExistingImages\img' + str(current_image + 1) + ".png") as img:
+        with Image.open(r'ExistingImages\img' + str(self.current_image + 1) + ".png") as img:
             pixels = img.load()
             width, height = img.size
             # The key to use for encryption
@@ -108,15 +116,13 @@ class System (Frame):
                     pixels[x, y] = tuple(new_pixel)
 
             # Save the encrypted image
-            img.save(r'ExistingImages\encrypted-image' + str(current_image + 1) + ".png")
-            existing_images[current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
-        self.center_label.configure(image=existing_images[current_image])
+            img.save(r'ExistingImages\encrypted-image' + str(self.current_image + 1) + ".png")
+            self.existing_images[self.current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
+        self.center_label.configure(image=self.existing_images[self.current_image])
 
     def decrypt_image(self):
-        global existing_images, current_image
-
         # Load the encrypted image
-        with Image.open(r'ExistingImages\encrypted-image' + str(current_image + 1) + ".png") as img:
+        with Image.open(r'ExistingImages\ManipulatedImages\encrypted-image' + str(self.current_image + 1) + ".png") as img:
             pixels = img.load()
             width, height = img.size
 
@@ -135,23 +141,19 @@ class System (Frame):
                         new_value = (value - salt)%256
                         new_pixel.append(new_value)
                     pixels[x, y] = tuple(new_pixel)
-            img.save(r'ExistingImages\decrypted-image' + str(current_image + 1) + ".png")
+            img.save(r'ExistingImages\ManipulatedImages\decrypted-image' + str(self.current_image + 1) + ".png")
             # Show the decrypted image
-            existing_images[current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
-            self.center_label.configure(image=existing_images[current_image])
+            self.existing_images[self.current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
+            self.center_label.configure(image=self.existing_images[self.current_image])
 
     def open_file(self):
-        global images_number, existing_images
         # Open a file dialog box and allow the user to select multiple image files
         file_paths = filedialog.askopenfilenames(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
-
         # Convert each file into a PhotoImage object and store them in a list
         for file_path in file_paths:
             image = Image.open(file_path)
-            image.save(r'ExistingImages\img' + str(images_number + 1) + ".png")
-            existing_images.append(ImageTk.PhotoImage(Image.open(r'ExistingImages\img' + str(images_number + 1) + r'.png')
-                                              .resize((250, 225))))
-            images_number += 1
+            image.save(r'ExistingImages\img' + str(self.images_number + 1) + ".png")
+            self.images_number += 1
 
 
     #def decrypt_image_AES(self):
