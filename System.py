@@ -55,7 +55,6 @@ class System (Frame):
 
     def existingImagesWindow(self, master):
         self.clean_and_rebuild('Existing Images')
-        print("next image: "+str(self.existing_images))
         leftArrowImage = Image.open("ExistingImages/Arrows/leftarrow.png")
         resizedLeftArrowImage = ImageTk.PhotoImage(leftArrowImage.resize((20, 20), Image.ANTIALIAS))
         rightArrowImage = Image.open("ExistingImages/Arrows/rightarrow.png")
