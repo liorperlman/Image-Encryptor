@@ -5,10 +5,20 @@ from PIL import Image, ImageTk
 import os
 import shutil
 
+from InfoBtn import InfoButton
+
+
 class System (Frame):
     existing_images = []
     current_image = 0
     images_number = 0
+    description = "The Image Encryptor Demo is a Python program with a Tkinter-based GUI that allows users to encrypt\r " \
+                  "and decrypt image files, as well as import and remove existing image files. The program utilizes the\r " \
+                  "Pillow library for image processing and maintains a list of existing images and their file paths for\r " \
+                  "easy access and manipulation. Encryption is achieved through a reversible algorithm that alters the\r " \
+                  "pixel values of the image without any loss of image quality. The program is an effective\r " \
+                  "demonstration of image encryption and decryption and can be expanded for more advanced usage.\r" \
+                  "Authors: Lior Perlman & Guy Rinsky"
     
     def __init__(self, master):
         Frame.__init__(self, master)
@@ -77,10 +87,16 @@ class System (Frame):
         
     def set_welcome_window(self):
         self.clean_and_rebuild('Existing Images')
+        info_image_raw = Image.open("ExistingImages/infoBtn/Info.png")
+        info_image = ImageTk.PhotoImage(info_image_raw.resize((20, 20), Image.ANTIALIAS))
+        info_btn = InfoButton(self.display_window, image=info_image, description=self.description)
+        info_btn.image = info_image
+        info_btn.configure(state="disable", borderwidth=0, fg="white", font=("Arial", 10, "bold"), compound="left", pady=5)
         existingImagesBtn = Button(self.display_window, text='Existing Images', command=lambda: self.set_existing_images_window(self.display_window))
         importImagesBtn = Button(self.display_window, text='Import Images', command=self.open_file)
         exitBtn = Button(self.display_window, text='Exit', command=self.display_window.destroy)
 
+        info_btn.pack(anchor=NW)
         existingImagesBtn.pack(side=LEFT, padx=15, pady=20)
         importImagesBtn.pack(side=RIGHT, padx=15, pady=20)
         exitBtn.pack(side=BOTTOM, padx=15, pady=20)
