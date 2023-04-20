@@ -20,15 +20,3 @@ class InfoButton(tk.Button):
 
     def hide_description(self, event):
         self.description_window.destroy()
-
-
-# # Example usage
-# root = tk.Tk()
-# root.geometry("300x200")
-#
-# info_image = tk.PhotoImage(file="info.png").subsample(4, 4)
-# info_btn = InfoButton(root, image=info_image, text="Info", description="This is the description of the info button.")
-# info_btn.configure(bg="#2196F3", fg="white", font=("Arial", 10, "bold"), compound="left", padx=10, pady=5)
-# info_btn.pack(pady=20)
-#
-# root.mainloop()
