@@ -75,10 +75,13 @@ class System (Frame):
         self.center_label.pack()
 
         encrypt_button = Button(self.display_window, text='Encrypt', command=self.encrypt_image)
+        remove_image_button = Button(self.display_window, text='remove Image', command=self.remove_image)
         decrypt_button = Button(self.display_window, text='Decrypt', command=self.decrypt_image)
 
         encrypt_button.pack(side='left')
-        decrypt_button.pack(side='right')
+        decrypt_button.pack(side='left')
+        remove_image_button.pack(side='right')
+        
     def set_welcome_window(self):
         existingImagesBtn = Button(self.display_window, text='Existing Images', command=lambda: self.existingImagesWindow(self.display_window))
         importImagesBtn = Button(self.display_window, text='Import Images', command=self.open_file)
@@ -92,6 +95,16 @@ class System (Frame):
     def next_image(self, direction):
         self.current_image = (self.current_image+direction)%self.images_number
         
+        self.center_label.configure(image=self.existing_images[self.current_image])
+
+    def remove_image(self):
+        self.existing_images.remove(self.existing_images[self.current_image])
+        os.remove(r'ExistingImages\img' + str(self.current_image + 1) + ".png")
+        for i in range(self.current_image+1, self.images_number):
+            temp_image = Image.open(r'ExistingImages\img' + str(i + 1) + ".png")
+            temp_image.save(r'ExistingImages\img' + str(i) + ".png")
+        os.remove(r'ExistingImages\img' + str(self.images_number) + ".png")
+        self.images_number -= 1
         self.center_label.configure(image=self.existing_images[self.current_image])
 
     def encrypt_image(self):
@@ -116,13 +129,13 @@ class System (Frame):
                     pixels[x, y] = tuple(new_pixel)
 
             # Save the encrypted image
-            img.save(r'ExistingImages\encrypted-image' + str(self.current_image + 1) + ".png")
+            img.save(r'ExistingImages\img' + str(self.current_image + 1) + ".png")
             self.existing_images[self.current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
         self.center_label.configure(image=self.existing_images[self.current_image])
 
     def decrypt_image(self):
         # Load the encrypted image
-        with Image.open(r'ExistingImages\ManipulatedImages\encrypted-image' + str(self.current_image + 1) + ".png") as img:
+        with Image.open(r'ExistingImages\img' + str(self.current_image + 1) + ".png") as img:
             pixels = img.load()
             width, height = img.size
 
@@ -141,7 +154,7 @@ class System (Frame):
                         new_value = (value - salt)%256
                         new_pixel.append(new_value)
                     pixels[x, y] = tuple(new_pixel)
-            img.save(r'ExistingImages\ManipulatedImages\decrypted-image' + str(self.current_image + 1) + ".png")
+            img.save(r'ExistingImages\img' + str(self.current_image + 1) + ".png")
             # Show the decrypted image
             self.existing_images[self.current_image] = ImageTk.PhotoImage(img.resize((250, 225)))
             self.center_label.configure(image=self.existing_images[self.current_image])
