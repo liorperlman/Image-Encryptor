@@ -19,4 +19,5 @@ class InfoButton(tk.Button):
         description_label.pack()
 
     def hide_description(self, event):
+        self.description_window.update()
         self.description_window.destroy()

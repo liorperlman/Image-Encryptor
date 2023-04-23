@@ -28,6 +28,7 @@ class System (Frame):
         self.update_images_number()
 
     def clean_and_rebuild(self, title):
+        self.display_window.update()
         self.display_window.destroy()
         self.display_window = Tk()
         self.load_initial_images()
@@ -50,20 +51,20 @@ class System (Frame):
         
     def set_existing_images_window(self, master):
         self.clean_and_rebuild('Existing Images')
-        leftArrowImage = Image.open("ExistingImages/Arrows/leftarrow.png")
-        resizedLeftArrowImage = ImageTk.PhotoImage(leftArrowImage.resize((20, 20), Image.ANTIALIAS))
-        rightArrowImage = Image.open("ExistingImages/Arrows/rightarrow.png")
-        resizedRightArrowImage = ImageTk.PhotoImage(rightArrowImage.resize((20, 20), Image.ANTIALIAS))
+        self.current_image = 0
+        left_arrow_image = Image.open("ExistingImages/Arrows/leftarrow.png")
+        resized_left_arrow_image = ImageTk.PhotoImage(left_arrow_image.resize((20, 20), Image.ANTIALIAS))
+        right_arrow_image = Image.open("ExistingImages/Arrows/rightarrow.png")
+        resizedRightArrowImage = ImageTk.PhotoImage(right_arrow_image.resize((20, 20), Image.ANTIALIAS))
 
-        leftArrowBtn = Button(self.display_window, image=resizedLeftArrowImage, command=lambda: self.next_image(-1))
-        leftArrowBtn.image = resizedLeftArrowImage
-        rightArrowBtn = Button(self.display_window, image=resizedRightArrowImage, command=lambda: self.next_image(1))
-        rightArrowBtn.image = resizedRightArrowImage
+        left_arrow_button = Button(self.display_window, image=resized_left_arrow_image, command=lambda: self.generic_action_handler(left_arrow_button, self.next_image, -1))
+        left_arrow_button.image = resized_left_arrow_image
+        right_arrow_button = Button(self.display_window, image=resizedRightArrowImage, command=lambda: self.generic_action_handler(right_arrow_button, self.next_image, 1))
+        right_arrow_button.image = resizedRightArrowImage
         back_button = Button(self.display_window, text='Back', command=self.set_welcome_window)
 
-
-        leftArrowBtn.pack(side=LEFT, padx=15, pady=20)
-        rightArrowBtn.pack(side=RIGHT, padx=15, pady=20)
+        left_arrow_button.pack(side=LEFT, padx=15, pady=20)
+        right_arrow_button.pack(side=RIGHT, padx=15, pady=20)
         back_button.pack(side=TOP, pady=10)
 
         self.photo_frame = Frame(self.display_window)
@@ -71,17 +72,20 @@ class System (Frame):
         self.photo_frame.pack(anchor='center', pady=30)
         self.center_label.pack()
 
-        encrypt_button = Button(self.display_window, text='Encrypt', command=lambda: self.generic_action_handler(encrypt_button, self.encrypt_image))
-        remove_image_button = Button(self.display_window, text='Remove Image', command=lambda: self.generic_action_handler(remove_image_button,self.remove_image))
-        decrypt_button = Button(self.display_window, text='Decrypt', command=lambda: self.generic_action_handler(decrypt_button, self.decrypt_image))
+        encrypt_button = Button(self.display_window, text='Encrypt', command=lambda: self.generic_action_handler(encrypt_button, self.encrypt_image, 0))
+        remove_image_button = Button(self.display_window, text='Remove Image', command=lambda: self.generic_action_handler(remove_image_button,self.remove_image, 0))
+        decrypt_button = Button(self.display_window, text='Decrypt', command=lambda: self.generic_action_handler(decrypt_button, self.decrypt_image, 0))
 
         encrypt_button.pack(side='left')
         decrypt_button.pack(side='left')
         remove_image_button.pack(side='right')
         
-    def generic_action_handler(self, button, func):
+    def generic_action_handler(self, button, func, flag):
         if self.images_number > 0:
-            func()
+            if flag == 0:
+                func()
+            else:
+                func(flag)
         else:
             button.configure(state="disabled")
         
@@ -89,25 +93,23 @@ class System (Frame):
         self.clean_and_rebuild('Existing Images')
         info_image_raw = Image.open("ExistingImages/infoBtn/Info.png")
         info_image = ImageTk.PhotoImage(info_image_raw.resize((20, 20), Image.ANTIALIAS))
-        info_btn = InfoButton(self.display_window, image=info_image, description=self.description)
-        info_btn.image = info_image
-        info_btn.configure(state="disable", borderwidth=0, fg="white", font=("Arial", 10, "bold"), compound="left", pady=5)
-        existingImagesBtn = Button(self.display_window, text='Existing Images', command=lambda: self.set_existing_images_window(self.display_window))
-        importImagesBtn = Button(self.display_window, text='Import Images', command=self.open_file)
-        exitBtn = Button(self.display_window, text='Exit', command=self.display_window.destroy)
+        info_button = InfoButton(self.display_window, image=info_image, description=self.description)
+        info_button.image = info_image
+        info_button.configure(state="disable", borderwidth=0, fg="white", font=("Arial", 10, "bold"), compound="left", pady=5)
+        existing_images_button = Button(self.display_window, text='Existing Images', command=lambda: self.set_existing_images_window(self.display_window))
+        import_images_button = Button(self.display_window, text='Import Images', command=self.open_file)
+        exit_button = Button(self.display_window, text='Exit', command=self.display_window.destroy)
 
-        info_btn.pack(anchor=NW)
-        existingImagesBtn.pack(side=LEFT, padx=15, pady=20)
-        importImagesBtn.pack(side=RIGHT, padx=15, pady=20)
-        exitBtn.pack(side=BOTTOM, padx=15, pady=20)
+        info_button.pack(anchor=NW)
+        existing_images_button.pack(side=LEFT, padx=15, pady=20)
+        import_images_button.pack(side=RIGHT, padx=15, pady=20)
+        exit_button.pack(side=BOTTOM, padx=15, pady=20)
 
     def next_image(self, direction):
         self.current_image = (self.current_image+direction)%self.images_number
         self.center_label.configure(image=self.existing_images[self.current_image])
 
-    def remove_image(self):
-        print("Images number before decrypt is: " +str(self.images_number))
-        
+    def remove_image(self):        
         self.existing_images.remove(self.existing_images[self.current_image])
         os.remove(r'ExistingImages\img' + str(self.current_image + 1) + ".png")
                 
